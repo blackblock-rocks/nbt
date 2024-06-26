@@ -1,11 +1,55 @@
 plugins {
     id "java-library"
-    id "maven"
-    id "signing"
+    id 'maven-publish'
 }
 
-group "dev.dewy"
-version "1.5.1"
+/**
+ * Version setup
+ */
+def baseVersion = project.project_version
+def baseGroup = project.maven_group
+def localPropertiesFile = file('local.properties')
+def localProperties = new Properties()
+
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withInputStream { stream ->
+        localProperties.load(stream)
+    }
+}
+
+def envVars = System.getenv()
+def currentEnvironment = envVars.getOrDefault("ENV", localProperties.getProperty("environment", "dev"))
+def isDevelopment = currentEnvironment == "dev"
+def localRepoDir = null
+ext.versionModifier = null
+
+if (localProperties.hasProperty("localRepoDir")) {
+    localRepoDir = localProperties.getProperty("localRepoDir")
+} else if (project.hasProperty("localRepoDir")) {
+    localRepoDir = project.findProperty("localRepoDir")
+}
+
+if (isDevelopment) {
+    versionModifier = "-SNAPSHOT"
+}
+
+def constructVersion(baseVersion) {
+    def result = baseVersion + versionModifier
+    return result
+}
+
+version = constructVersion(baseVersion)
+group = baseGroup
+
+println("Info: currentEnvironment = $currentEnvironment")
+println("Info: isDevelopment = $isDevelopment")
+println("Info: localRepoDir = $localRepoDir")
+println("Info: versionModifier = $versionModifier")
+println("Info: version = " + version)
+
+base {
+    archivesName = project.archives_base_name
+}
 
 repositories {
     mavenCentral()
@@ -13,6 +57,12 @@ repositories {
     maven {
         name "mojang"
         url "https://libraries.minecraft.net/"
+    }
+
+    if (isDevelopment && localRepoDir) {
+        maven {
+            url localRepoDir
+        }
     }
 }
 
@@ -28,64 +78,54 @@ dependencies {
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = "sources"
     from sourceSets.main.allSource
+    archiveClassifier.set("sources")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = "javadoc"
     from javadoc.destinationDir
+    archiveClassifier.set("javadoc")
 }
 
-artifacts {
-    archives jar
-    archives sourcesJar
-    archives javadocJar
-}
+// configure the maven publication
+publishing {
+    publications {
+        create("mavenJava", MavenPublication) {
+            from components.java
 
-signing {
-    if (project.hasProperty("signing.keyId")) {
-        sign configurations.archives
+            artifact sourcesJar
+            artifact javadocJar
+        }
     }
-}
 
-uploadArchives {
+    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
-        mavenDeployer {
-            beforeDeployment {
-                MavenDeployment deployment -> signing.signPom(deployment)
+        // Add repositories to publish to here.
+        // Notice: This block does NOT have the same function as the block in the top level.
+        // The repositories here will be used for publishing your artifact, not for
+        // retrieving dependencies.
+        repositories {
+            if (envVars.MAVEN_URL) {
+                maven {
+                    credentials {
+                        username envVars.MAVEN_USERNAME
+                        password envVars.MAVEN_PASSWORD
+                    }
+                    url envVars.MAVEN_URL
+                }
+            } else {
+                mavenLocal()
             }
 
-            repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: hasProperty('ossrhUsername')?ossrhUsername:'', password: hasProperty('ossrhPassword')?ossrhPassword:'')
-            }
+            if (isDevelopment) {
 
-            pom.project {
-                name = "nbt"
-                description = "Flexible and intuitive library for reading and writing Minecraft's NBT format, with emphasis on custom tags."
-                url = "https://github.com/iBuyMountainDew/nbt"
-
-                packaging "jar"
-
-                licenses {
-                    license {
-                        name = "MIT License"
-                        url = "https://github.com/iBuyMountainDew/nbt/blob/main/LICENSE.md"
+                if (localRepoDir) {
+                    maven {
+                        name = 'local'
+                        url = uri(localRepoDir)
                     }
-                }
-
-                developers {
-                    developer {
-                        id = "dewy"
-                        name = "Dewy REDACTED"
-                        email = "dewy@dewy.dev"
-                    }
-                }
-
-                scm {
-                    connection "scm:git:git://github.com/iBuyMountainDew/nbt.git"
-                    developerConnection "scm:git:ssh://github.com/iBuyMountainDew/nbt.git"
-                    url "https://github.com/iBuyMountainDew/nbt"
+                } else {
+                    mavenLocal()
                 }
             }
         }
