@@ -1,6 +1,6 @@
 package rocks.blackblock.nbt.api;
 
-import rocks.blackblock.nbt.api.registry.TagTypeRegistry;
+import rocks.blackblock.nbt.api.registry.NbtTypeRegistry;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -11,7 +11,7 @@ import java.io.IOException;
  *
  * @author dewy
  */
-public abstract class Tag {
+public abstract class NbtElement {
     private String name;
 
     /**
@@ -51,19 +51,19 @@ public abstract class Tag {
      *
      * @param output the stream to write to.
      * @param depth the current depth of the NBT data structure.
-     * @param registry the {@link TagTypeRegistry} to be used in writing.
+     * @param registry the {@link NbtTypeRegistry} to be used in writing.
      * @throws IOException if any I/O error occurs.
      */
-    public abstract void write(DataOutput output, int depth, TagTypeRegistry registry) throws IOException;
+    public abstract void write(DataOutput output, int depth, NbtTypeRegistry registry) throws IOException;
 
     /**
      * Reads this tag from a {@link DataInput} stream.
      *
      * @param input the stream to read from.
      * @param depth the current depth of the NBT data structure.
-     * @param registry the {@link TagTypeRegistry} to be used in reading.
+     * @param registry the {@link NbtTypeRegistry} to be used in reading.
      * @return this (literally {@code return this;} after reading).
      * @throws IOException if any I/O error occurs.
      */
-    public abstract Tag read(DataInput input, int depth, TagTypeRegistry registry) throws IOException;
+    public abstract NbtElement read(DataInput input, int depth, NbtTypeRegistry registry) throws IOException;
 }

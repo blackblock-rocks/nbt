@@ -1,9 +1,9 @@
-package rocks.blackblock.nbt.tags.primitive;
+package rocks.blackblock.nbt.elements.primitive;
 
 import com.google.gson.JsonObject;
-import rocks.blackblock.nbt.api.registry.TagTypeRegistry;
+import rocks.blackblock.nbt.api.registry.NbtTypeRegistry;
 import rocks.blackblock.nbt.api.snbt.SnbtConfig;
-import rocks.blackblock.nbt.tags.TagType;
+import rocks.blackblock.nbt.elements.NbtType;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -18,7 +18,7 @@ import java.io.IOException;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-public class DoubleTag extends NumericalTag<Double> {
+public class NbtDouble extends AbstractNbtNumber<Double> {
     private double value;
 
     /**
@@ -27,14 +27,14 @@ public class DoubleTag extends NumericalTag<Double> {
      * @param name the tag's name.
      * @param value the tag's {@code double} value.
      */
-    public DoubleTag(String name, double value) {
+    public NbtDouble(String name, double value) {
         this.setName(name);
         this.setValue(value);
     }
 
     @Override
     public byte getTypeId() {
-        return TagType.DOUBLE.getId();
+        return NbtType.DOUBLE.getId();
     }
 
     @Override
@@ -52,24 +52,24 @@ public class DoubleTag extends NumericalTag<Double> {
     }
 
     @Override
-    public void write(DataOutput output, int depth, TagTypeRegistry registry) throws IOException {
+    public void write(DataOutput output, int depth, NbtTypeRegistry registry) throws IOException {
         output.writeDouble(this.value);
     }
 
     @Override
-    public DoubleTag read(DataInput input, int depth, TagTypeRegistry registry) throws IOException {
+    public NbtDouble read(DataInput input, int depth, NbtTypeRegistry registry) throws IOException {
         this.value = input.readDouble();
 
         return this;
     }
 
     @Override
-    public String toSnbt(int depth, TagTypeRegistry registry, SnbtConfig config) {
+    public String toSnbt(int depth, NbtTypeRegistry registry, SnbtConfig config) {
         return this.value + "d";
     }
 
     @Override
-    public JsonObject toJson(int depth, TagTypeRegistry registry) {
+    public JsonObject toJson(int depth, NbtTypeRegistry registry) {
         JsonObject json = new JsonObject();
         json.addProperty("type", this.getTypeId());
 
@@ -83,7 +83,7 @@ public class DoubleTag extends NumericalTag<Double> {
     }
 
     @Override
-    public DoubleTag fromJson(JsonObject json, int depth, TagTypeRegistry registry) {
+    public NbtDouble fromJson(JsonObject json, int depth, NbtTypeRegistry registry) {
         if (json.has("name")) {
             this.setName(json.getAsJsonPrimitive("name").getAsString());
         } else {
@@ -100,9 +100,9 @@ public class DoubleTag extends NumericalTag<Double> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        DoubleTag doubleTag = (DoubleTag) o;
+        NbtDouble nbtDouble = (NbtDouble) o;
 
-        return Double.compare(doubleTag.value, value) == 0;
+        return Double.compare(nbtDouble.value, value) == 0;
     }
 
     @Override

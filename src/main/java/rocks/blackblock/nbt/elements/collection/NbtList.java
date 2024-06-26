@@ -1,15 +1,15 @@
-package rocks.blackblock.nbt.tags.collection;
+package rocks.blackblock.nbt.elements.collection;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import rocks.blackblock.nbt.api.Tag;
+import rocks.blackblock.nbt.api.NbtElement;
 import rocks.blackblock.nbt.api.json.JsonSerializable;
-import rocks.blackblock.nbt.api.registry.TagTypeRegistry;
-import rocks.blackblock.nbt.api.registry.TagTypeRegistryException;
+import rocks.blackblock.nbt.api.registry.NbtTypeRegistry;
+import rocks.blackblock.nbt.api.registry.NbtTypeRegistryException;
 import rocks.blackblock.nbt.api.snbt.SnbtConfig;
 import rocks.blackblock.nbt.api.snbt.SnbtSerializable;
-import rocks.blackblock.nbt.tags.TagType;
+import rocks.blackblock.nbt.elements.NbtType;
 import rocks.blackblock.nbt.utils.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
@@ -26,14 +26,14 @@ import java.util.function.Consumer;
  * @author dewy
  */
 @AllArgsConstructor
-public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, JsonSerializable, Iterable<T> {
+public class NbtList<T extends NbtElement> extends NbtElement implements SnbtSerializable, JsonSerializable, Iterable<T> {
     private @NonNull List<T> value;
     private byte type;
 
     /**
      * Constructs an empty, unnamed list tag.
      */
-    public ListTag() {
+    public NbtList() {
         this(null);
     }
 
@@ -42,7 +42,7 @@ public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, Jso
      *
      * @param name the tag's name.
      */
-    public ListTag(String name) {
+    public NbtList(String name) {
         this(name, new LinkedList<>());
     }
 
@@ -52,7 +52,7 @@ public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, Jso
      * @param name the tag's name.
      * @param value the tag's {@code List<>} value.
      */
-    public ListTag(String name, @NonNull List<T> value) {
+    public NbtList(String name, @NonNull List<T> value) {
         if (value.isEmpty()) {
             this.type = 0;
         } else {
@@ -65,7 +65,7 @@ public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, Jso
 
     @Override
     public byte getTypeId() {
-        return TagType.LIST.getId();
+        return NbtType.LIST.getId();
     }
 
     @Override
@@ -98,7 +98,7 @@ public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, Jso
     }
 
     @Override
-    public void write(DataOutput output, int depth, TagTypeRegistry registry) throws IOException {
+    public void write(DataOutput output, int depth, NbtTypeRegistry registry) throws IOException {
         if (depth > 512) {
             throw new IOException("NBT structure too complex (depth > 512).");
         }
@@ -112,7 +112,7 @@ public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, Jso
     }
 
     @Override
-    public ListTag<T> read(DataInput input, int depth, TagTypeRegistry registry) throws IOException {
+    public NbtList<T> read(DataInput input, int depth, NbtTypeRegistry registry) throws IOException {
         if (depth > 512) {
             throw new IOException("NBT structure too complex (depth > 512).");
         }
@@ -124,7 +124,7 @@ public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, Jso
 
         T next;
         for (int i = 0; i < length; i++) {
-            Class<? extends Tag> tagClass = registry.getClassFromId(tagType);
+            Class<? extends NbtElement> tagClass = registry.getClassFromId(tagType);
 
             if (tagClass == null) {
                 throw new IOException("Tag type with ID " + tagType + " not present in tag type registry.");
@@ -132,7 +132,7 @@ public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, Jso
 
             try {
                 next = (T) registry.instantiate(tagClass);
-            } catch (TagTypeRegistryException e) {
+            } catch (NbtTypeRegistryException e) {
                 throw new IOException(e);
             }
 
@@ -154,7 +154,7 @@ public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, Jso
     }
 
     @Override
-    public String toSnbt(int depth, TagTypeRegistry registry, SnbtConfig config) {
+    public String toSnbt(int depth, NbtTypeRegistry registry, SnbtConfig config) {
         StringBuilder sb = new StringBuilder("[");
 
         if (config.isPrettyPrint()) {
@@ -183,7 +183,7 @@ public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, Jso
     }
 
     @Override
-    public JsonObject toJson(int depth, TagTypeRegistry registry) throws IOException {
+    public JsonObject toJson(int depth, NbtTypeRegistry registry) throws IOException {
         if (depth > 512) {
             throw new IOException("NBT structure too complex (depth > 512).");
         }
@@ -209,7 +209,7 @@ public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, Jso
     }
 
     @Override
-    public ListTag<T> fromJson(JsonObject json, int depth, TagTypeRegistry registry) throws IOException {
+    public NbtList<T> fromJson(JsonObject json, int depth, NbtTypeRegistry registry) throws IOException {
         if (depth > 512) {
             throw new IOException("NBT structure too complex (depth > 512).");
         }
@@ -227,7 +227,7 @@ public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, Jso
 
         T nextTag;
         for (JsonElement element : json.getAsJsonArray("value")) {
-            Class<? extends Tag> tagClass = registry.getClassFromId(listType);
+            Class<? extends NbtElement> tagClass = registry.getClassFromId(listType);
 
             if (tagClass == null) {
                 throw new IOException("Tag type with ID " + listType + " not present in tag type registry.");
@@ -235,7 +235,7 @@ public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, Jso
 
             try {
                 nextTag = (T) registry.instantiate(tagClass);
-            } catch (TagTypeRegistryException e) {
+            } catch (NbtTypeRegistryException e) {
                 throw new IOException(e);
             }
 
@@ -396,7 +396,7 @@ public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, Jso
 
     @Override
     public String toString() {
-        return this.toSnbt(0, new TagTypeRegistry(), new SnbtConfig());
+        return this.toSnbt(0, new NbtTypeRegistry(), new SnbtConfig());
     }
 
     @Override
@@ -404,10 +404,10 @@ public class ListTag<T extends Tag> extends Tag implements SnbtSerializable, Jso
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ListTag<?> listTag = (ListTag<?>) o;
+        NbtList<?> nbtList = (NbtList<?>) o;
 
-        if (type != listTag.type) return false;
-        return Objects.equals(value, listTag.value);
+        if (type != nbtList.type) return false;
+        return Objects.equals(value, nbtList.value);
     }
 
     @Override

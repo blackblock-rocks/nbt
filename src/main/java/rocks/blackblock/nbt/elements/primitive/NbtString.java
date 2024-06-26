@@ -1,12 +1,12 @@
-package rocks.blackblock.nbt.tags.primitive;
+package rocks.blackblock.nbt.elements.primitive;
 
 import com.google.gson.JsonObject;
-import rocks.blackblock.nbt.api.Tag;
+import rocks.blackblock.nbt.api.NbtElement;
 import rocks.blackblock.nbt.api.json.JsonSerializable;
-import rocks.blackblock.nbt.api.registry.TagTypeRegistry;
+import rocks.blackblock.nbt.api.registry.NbtTypeRegistry;
 import rocks.blackblock.nbt.api.snbt.SnbtConfig;
 import rocks.blackblock.nbt.api.snbt.SnbtSerializable;
-import rocks.blackblock.nbt.tags.TagType;
+import rocks.blackblock.nbt.elements.NbtType;
 import rocks.blackblock.nbt.utils.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -24,7 +24,7 @@ import java.util.Objects;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-public class StringTag extends Tag implements SnbtSerializable, JsonSerializable {
+public class NbtString extends NbtElement implements SnbtSerializable, JsonSerializable {
     private @NonNull String value;
 
     /**
@@ -33,14 +33,14 @@ public class StringTag extends Tag implements SnbtSerializable, JsonSerializable
      * @param name the tag's name.
      * @param value the tag's {@code String} value.
      */
-    public StringTag(String name, @NonNull String value) {
+    public NbtString(String name, @NonNull String value) {
         this.setName(name);
         this.setValue(value);
     }
 
     @Override
     public byte getTypeId() {
-        return TagType.STRING.getId();
+        return NbtType.STRING.getId();
     }
 
     @Override
@@ -58,24 +58,24 @@ public class StringTag extends Tag implements SnbtSerializable, JsonSerializable
     }
 
     @Override
-    public void write(DataOutput output, int depth, TagTypeRegistry registry) throws IOException {
+    public void write(DataOutput output, int depth, NbtTypeRegistry registry) throws IOException {
         output.writeUTF(this.value);
     }
 
     @Override
-    public StringTag read(DataInput input, int depth, TagTypeRegistry registry) throws IOException {
+    public NbtString read(DataInput input, int depth, NbtTypeRegistry registry) throws IOException {
         this.value = input.readUTF();
 
         return this;
     }
 
     @Override
-    public String toSnbt(int depth, TagTypeRegistry registry, SnbtConfig config) {
+    public String toSnbt(int depth, NbtTypeRegistry registry, SnbtConfig config) {
         return StringUtils.escapeSnbt(this.value);
     }
 
     @Override
-    public JsonObject toJson(int depth, TagTypeRegistry registry) {
+    public JsonObject toJson(int depth, NbtTypeRegistry registry) {
         JsonObject json = new JsonObject();
         json.addProperty("type", this.getTypeId());
 
@@ -89,7 +89,7 @@ public class StringTag extends Tag implements SnbtSerializable, JsonSerializable
     }
 
     @Override
-    public StringTag fromJson(JsonObject json, int depth, TagTypeRegistry registry) {
+    public NbtString fromJson(JsonObject json, int depth, NbtTypeRegistry registry) {
         if (json.has("name")) {
             this.setName(json.getAsJsonPrimitive("name").getAsString());
         } else {
@@ -103,7 +103,7 @@ public class StringTag extends Tag implements SnbtSerializable, JsonSerializable
 
     @Override
     public String toString() {
-        return this.toSnbt(0, new TagTypeRegistry(), new SnbtConfig());
+        return this.toSnbt(0, new NbtTypeRegistry(), new SnbtConfig());
     }
 
     @Override
@@ -111,9 +111,9 @@ public class StringTag extends Tag implements SnbtSerializable, JsonSerializable
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        StringTag stringTag = (StringTag) o;
+        NbtString nbtString = (NbtString) o;
 
-        return Objects.equals(value, stringTag.value);
+        return Objects.equals(value, nbtString.value);
     }
 
     @Override

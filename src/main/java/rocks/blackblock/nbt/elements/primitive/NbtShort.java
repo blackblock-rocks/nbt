@@ -1,9 +1,9 @@
-package rocks.blackblock.nbt.tags.primitive;
+package rocks.blackblock.nbt.elements.primitive;
 
 import com.google.gson.JsonObject;
-import rocks.blackblock.nbt.api.registry.TagTypeRegistry;
+import rocks.blackblock.nbt.api.registry.NbtTypeRegistry;
 import rocks.blackblock.nbt.api.snbt.SnbtConfig;
-import rocks.blackblock.nbt.tags.TagType;
+import rocks.blackblock.nbt.elements.NbtType;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -19,7 +19,7 @@ import java.io.IOException;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-public class ShortTag extends NumericalTag<Short> {
+public class NbtShort extends AbstractNbtNumber<Short> {
     private short value;
 
     /**
@@ -27,7 +27,7 @@ public class ShortTag extends NumericalTag<Short> {
      *
      * @param value the tag's {@code Number} value, to be converted to {@code short}.
      */
-    public ShortTag(@NonNull Number value) {
+    public NbtShort(@NonNull Number value) {
         this(null, value);
     }
 
@@ -37,7 +37,7 @@ public class ShortTag extends NumericalTag<Short> {
      * @param name the tag's name.
      * @param value the tag's {@code Number} value, to be converted to {@code short}.
      */
-    public ShortTag(String name, @NonNull Number value) {
+    public NbtShort(String name, @NonNull Number value) {
         this(name, value.shortValue());
     }
 
@@ -47,14 +47,14 @@ public class ShortTag extends NumericalTag<Short> {
      * @param name the tag's name.
      * @param value the tag's {@code short} value.
      */
-    public ShortTag(String name, short value) {
+    public NbtShort(String name, short value) {
         this.setName(name);
         this.setValue(value);
     }
 
     @Override
     public byte getTypeId() {
-        return TagType.SHORT.getId();
+        return NbtType.SHORT.getId();
     }
 
     @Override
@@ -72,24 +72,24 @@ public class ShortTag extends NumericalTag<Short> {
     }
 
     @Override
-    public void write(DataOutput output, int depth, TagTypeRegistry registry) throws IOException {
+    public void write(DataOutput output, int depth, NbtTypeRegistry registry) throws IOException {
         output.writeShort(this.value);
     }
 
     @Override
-    public ShortTag read(DataInput input, int depth, TagTypeRegistry registry) throws IOException {
+    public NbtShort read(DataInput input, int depth, NbtTypeRegistry registry) throws IOException {
         this.value = input.readShort();
 
         return this;
     }
 
     @Override
-    public String toSnbt(int depth, TagTypeRegistry registry, SnbtConfig config) {
+    public String toSnbt(int depth, NbtTypeRegistry registry, SnbtConfig config) {
         return this.value + "s";
     }
 
     @Override
-    public JsonObject toJson(int depth, TagTypeRegistry registry) {
+    public JsonObject toJson(int depth, NbtTypeRegistry registry) {
         JsonObject json = new JsonObject();
         json.addProperty("type", this.getTypeId());
 
@@ -103,7 +103,7 @@ public class ShortTag extends NumericalTag<Short> {
     }
 
     @Override
-    public ShortTag fromJson(JsonObject json, int depth, TagTypeRegistry registry) {
+    public NbtShort fromJson(JsonObject json, int depth, NbtTypeRegistry registry) {
         if (json.has("name")) {
             this.setName(json.getAsJsonPrimitive("name").getAsString());
         } else {
@@ -120,9 +120,9 @@ public class ShortTag extends NumericalTag<Short> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ShortTag shortTag = (ShortTag) o;
+        NbtShort nbtShort = (NbtShort) o;
 
-        return value == shortTag.value;
+        return value == nbtShort.value;
     }
 
     @Override

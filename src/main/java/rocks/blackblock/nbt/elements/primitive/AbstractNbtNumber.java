@@ -1,8 +1,8 @@
-package rocks.blackblock.nbt.tags.primitive;
+package rocks.blackblock.nbt.elements.primitive;
 
-import rocks.blackblock.nbt.api.Tag;
+import rocks.blackblock.nbt.api.NbtElement;
 import rocks.blackblock.nbt.api.json.JsonSerializable;
-import rocks.blackblock.nbt.api.registry.TagTypeRegistry;
+import rocks.blackblock.nbt.api.registry.NbtTypeRegistry;
 import rocks.blackblock.nbt.api.snbt.SnbtConfig;
 import rocks.blackblock.nbt.api.snbt.SnbtSerializable;
 
@@ -12,7 +12,7 @@ import rocks.blackblock.nbt.api.snbt.SnbtSerializable;
  * @param <T> the {@code Number} type this NBT tag represents.
  * @author dewy
  */
-public abstract class NumericalTag<T extends Number> extends Tag implements SnbtSerializable, JsonSerializable {
+public abstract class AbstractNbtNumber<T extends Number> extends NbtElement implements SnbtSerializable, JsonSerializable {
     @Override
     public abstract T getValue();
 
@@ -72,6 +72,6 @@ public abstract class NumericalTag<T extends Number> extends Tag implements Snbt
 
     @Override
     public String toString() {
-        return this.toSnbt(0, new TagTypeRegistry(), new SnbtConfig());
+        return this.toSnbt(0, new NbtTypeRegistry(), new SnbtConfig());
     }
 }

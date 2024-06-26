@@ -22,24 +22,24 @@
 NBT (Named Binary Tag) is a binary format devised by Notch to be Minecraft's primary means of data storage.
 
 Due to the scuffed way the NBT format works, you'll probably want to read up on it before using this library in production.
-There are 12 types of tag that can be used in a complaint NBT file (see the links below for descriptions of each):
+There are 12 types of elements that can be used in a compliant NBT file (see the links below for descriptions of each):
 
-- [Byte](src/main/java/dev/dewy/nbt/tags/primitive/ByteTag.java)
-- [Short](src/main/java/dev/dewy/nbt/tags/primitive/ShortTag.java)
-- [Int](src/main/java/dev/dewy/nbt/tags/primitive/IntTag.java)
-- [Long](src/main/java/dev/dewy/nbt/tags/primitive/LongTag.java)
-- [Float](src/main/java/dev/dewy/nbt/tags/primitive/FloatTag.java)
-- [Double](src/main/java/dev/dewy/nbt/tags/primitive/DoubleTag.java)
-- [Byte Array](src/main/java/dev/dewy/nbt/tags/array/ByteArrayTag.java)
-- [Int Array](src/main/java/dev/dewy/nbt/tags/array/IntArrayTag.java)
-- [Long Array](src/main/java/dev/dewy/nbt/tags/array/LongArrayTag.java)
-- [String](src/main/java/dev/dewy/nbt/tags/primitive/StringTag.java)
-- [List](src/main/java/dev/dewy/nbt/tags/collection/ListTag.java)
-- [Compound](src/main/java/dev/dewy/nbt/tags/collection/CompoundTag.java)                                                       
+- [Byte](src/main/java/rocks/blackblock/nbt/elements/primitive/NbtByte.java)
+- [Short](src/main/java/rocks/blackblock/nbt/elements/primitive/NbtShort.java)
+- [Int](src/main/java/rocks/blackblock/nbt/elements/primitive/NbtInt.java)
+- [Long](src/main/java/rocks/blackblock/nbt/elements/primitive/NbtLong.java)
+- [Float](src/main/java/rocks/blackblock/nbt/elements/primitive/NbtFloat.java)
+- [Double](src/main/java/rocks/blackblock/nbt/elements/primitive/NbtDouble.java)
+- [Byte Array](src/main/java/rocks/blackblock/nbt/elements/array/NbtByteArray.java)
+- [Int Array](src/main/java/rocks/blackblock/nbt/elements/array/NbtIntArray.java)
+- [Long Array](src/main/java/rocks/blackblock/nbt/elements/array/NbtLongArray.java)
+- [String](src/main/java/rocks/blackblock/nbt/elements/primitive/NbtString.java)
+- [List](src/main/java/rocks/blackblock/nbt/elements/collection/NbtList.java)
+- [Compound](src/main/java/rocks/blackblock/nbt/elements/collection/NbtCompound.java)                                                       
 
-Tag type IDs 1-12 for each of these can be found [here](src/main/java/dev/dewy/nbt/tags/TagType.java).
+Nbt Element type IDs 1-12 for each of these can be found [here](src/main/java/rocks/blackblock/nbt/elements/NbtType.java).
 
-All valid NBT structures begin with a compound tag; the root compound. Everything else in the NBT structure is a child of this root compound.
+All valid NBT structures begin with a compound element; the root compound. Everything else in the NBT structure is a child of this root compound.
 
 The original [NBT specification](NBT.txt) written by Notch is also hosted here.
 
@@ -53,13 +53,13 @@ repositories {
 }
 
 dependencies {
-    implementation "dev.dewy:nbt:1.5.1"
+    implementation "rocks.blackblock:nbt:1.6.0"
 }
 ```
 
 #### `Nbt` Sample: Base64
 
-The [Nbt](src/main/java/dev/dewy/nbt/Nbt.java) class can be used to easily (de)serialize NBT data:
+The [Nbt](src/main/java/rocks/blackblock/nbt/Nbt.java) class can be used to easily (de)serialize NBT data:
 
 ```java
 public static final Nbt NBT = new Nbt();
@@ -72,7 +72,7 @@ System.out.println(test.getName()); // hello world
 System.out.println(test.getInt("test").getValue()); // 0
 ```
 
-See the [NbtTest](src/test/java/dev/dewy/nbt/test/NbtTest.java) class for full sample usage.
+See the [NbtTest](src/test/java/rocks/blackblock/nbt/test/NbtTest.java) class for full sample usage.
 
 
 #### SNBT Format
@@ -89,24 +89,24 @@ The [JSON NBT sample](samples/sample.json) encoded as SNBT is as follows:
 
 Every tag in NBT JSON is represented as an object containing the following properties:
 
-- `type` The tag's type ID. (*byte*)
-- `value` The tag's value. (*JSON primitive, array, or object depending on the tag's type*)
-- `name` The tag's name, omitted if contained inside a [list tag](src/main/java/dev/dewy/nbt/tags/collection/ListTag.java). (*string*)
+- `type` The elements's type ID. (*byte*)
+- `value` The elements's value. (*JSON primitive, array, or object depending on the tag's type*)
+- `name` The elements's name, omitted if contained inside a [list tag](src/main/java/rocks/blackblock/nbt/elements/collection/ListTag.java). (*string*)
 
 The [JSON NBT sample](samples/sample.json) is documented below:
 
 ```js
-{ // root compound tag named "root"
-  "type": 10, // compound tag type ID
+{ // root compound elements named "root"
+  "type": 10, // compound elements type ID
   "name": "root",
   "value": {
-    "primitive": { // an int tag named "primitive" with the value 3
-      "type": 3, // int tag type ID
+    "primitive": { // an int elements named "primitive" with the value 3
+      "type": 3, // int elements type ID
       "name": "primitive",
       "value": 3
     },
-    "array": { // an int array tag named "array" with the value [0, 1, 2, 3]
-      "type": 11, // int array tag type ID
+    "array": { // an int array elements named "array" with the value [0, 1, 2, 3]
+      "type": 11, // int array elements type ID
       "name": "array",
       "value": [
         0,
@@ -115,13 +115,13 @@ The [JSON NBT sample](samples/sample.json) is documented below:
         3
       ]
     },
-    "list": { // a list tag named "list" containing string tags.
-      "type": 9, // list tag type ID
-      "listType": 8, // string tag type ID (this list contains string tags)
+    "list": { // a list elements named "list" containing string tags.
+      "type": 9, // list elements type ID
+      "listType": 8, // string elements type ID (this list contains string tags)
       "name": "list",
       "value": [
-        { // unnamed string tag contained within "list"
-          "type": 8, // string tag type ID
+        { // unnamed string elements contained within "list"
+          "type": 8, // string elements type ID
           "value": "duck"
         },
         {
@@ -130,8 +130,8 @@ The [JSON NBT sample](samples/sample.json) is documented below:
         }
       ]
     },
-    "compound": { // an empty compound tag named "compound"
-      "type": 10, // compound tag type ID
+    "compound": { // an empty compound elements named "compound"
+      "type": 10, // compound elements type ID
       "name": "compound",
       "value": {} // empty
     }
@@ -143,7 +143,7 @@ The [JSON NBT sample](samples/sample.json) is documented below:
 
 - Fully compliant with Mojang's "standards"
 - Small and lightweight (40Kb!)
-- Supports all Java edition NBT tags (including long array)
+- Supports all Java edition NBT elements (including long array)
 - Intuitive and flexible reading and writing functionality
 - JSON (De)serialization
 - SNBT Serialization

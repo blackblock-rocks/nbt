@@ -1,11 +1,11 @@
-package rocks.blackblock.nbt.tags.array;
+package rocks.blackblock.nbt.elements.array;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import rocks.blackblock.nbt.api.registry.TagTypeRegistry;
+import rocks.blackblock.nbt.api.registry.NbtTypeRegistry;
 import rocks.blackblock.nbt.api.snbt.SnbtConfig;
-import rocks.blackblock.nbt.tags.TagType;
-import rocks.blackblock.nbt.tags.primitive.ByteTag;
+import rocks.blackblock.nbt.elements.NbtType;
+import rocks.blackblock.nbt.elements.primitive.NbtInt;
 import rocks.blackblock.nbt.utils.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -22,84 +22,88 @@ import java.util.Spliterator;
 import java.util.function.Consumer;
 
 /**
- * The byte array tag (type ID 7) is used for storing {@code byte[]} arrays in NBT structures.
- * It is not stored as a list of {@link ByteTag}s.
+ * The int array tag (type ID 11) is used for storing {@code int[]} arrays in NBT structures.
+ * It is not stored as a list of {@link NbtInt}s.
  *
  * @author dewy
  */
 @NoArgsConstructor
 @AllArgsConstructor
-public class ByteArrayTag extends ArrayTag<Byte> {
-    private @NonNull byte[] value;
+public class NbtIntArray extends AbstractNbtList<Integer> {
+    private @NonNull int[] value;
 
     /**
-     * Constructs a byte array tag with a given name and value.
+     * Constructs an int array tag with a given name and value.
      *
      * @param name the tag's name.
-     * @param value the tag's {@code byte[]} value.
+     * @param value the tag's {@code int[]} value.
      */
-    public ByteArrayTag(String name, @NonNull byte[] value) {
+    public NbtIntArray(String name, @NonNull int[] value) {
         this.setName(name);
         this.setValue(value);
     }
 
     /**
-     * Constructs an unnamed byte array tag using a {@code List<>} object.
+     * Constructs an unnamed int array tag using a {@code List<>} object.
      *
-     * @param value the tag's {@code List<>} value, to be converted to a primitive {@code byte[]} array.
+     * @param value the tag's {@code List<>} value, to be converted to a primitive {@code int[]} array.
      */
-    public ByteArrayTag(@NonNull List<Byte> value) {
+    public NbtIntArray(@NonNull List<Integer> value) {
         this(null, value);
     }
 
     /**
-     * Constructs a byte array tag with a given name, using a List object to determine its {@code byte[]} value.
+     * Constructs an int array tag with a given name, using a List object to determine its {@code int[]} value.
      *
      * @param name the tag's name.
-     * @param value the tag's {@code List<>} value, to be converted to a primitive {@code byte[]} array.
+     * @param value the tag's {@code List<>} value, to be converted to a primitive {@code int[]} array.
      */
-    public ByteArrayTag(String name, @NonNull List<Byte> value) {
+    public NbtIntArray(String name, @NonNull List<Integer> value) {
         this.setName(name);
-        this.setValue(ArrayUtils.toPrimitive(value.toArray(new Byte[0])));
+        this.setValue(ArrayUtils.toPrimitive(value.toArray(new Integer[0])));
     }
 
     @Override
     public byte getTypeId() {
-        return TagType.BYTE_ARRAY.getId();
+        return NbtType.INT_ARRAY.getId();
     }
 
     @Override
-    public byte[] getValue() {
+    public int[] getValue() {
         return this.value;
     }
 
     /**
-     * Sets the {@code byte[]} value of this byte array tag.
+     * Sets the {@code int[]} value of this int array tag.
      *
-     * @param value new {@code byte[]} value to be set.
+     * @param value new {@code int[]} value to be set.
      */
-    public void setValue(@NonNull byte[] value) {
+    public void setValue(@NonNull int[] value) {
         this.value = value;
     }
 
     @Override
-    public void write(DataOutput output, int depth, TagTypeRegistry registry) throws IOException {
+    public void write(DataOutput output, int depth, NbtTypeRegistry registry) throws IOException {
         output.writeInt(this.value.length);
-        output.write(this.value);
+
+        for (int i : this) {
+            output.writeInt(i);
+        }
     }
 
     @Override
-    public ByteArrayTag read(DataInput input, int depth, TagTypeRegistry registry) throws IOException {
-        byte[] tmp = new byte[input.readInt()];
-        input.readFully(tmp);
+    public NbtIntArray read(DataInput input, int depth, NbtTypeRegistry registry) throws IOException {
+        this.value = new int[input.readInt()];
 
-        this.value = tmp;
+        for (int i = 0; i < this.value.length; i++) {
+            this.value[i] = input.readInt();
+        }
 
         return this;
     }
 
     @Override
-    public JsonObject toJson(int depth, TagTypeRegistry registry) throws IOException {
+    public JsonObject toJson(int depth, NbtTypeRegistry registry) throws IOException {
         JsonObject json = new JsonObject();
         JsonArray array = new JsonArray();
         json.addProperty("type", this.getTypeId());
@@ -108,8 +112,8 @@ public class ByteArrayTag extends ArrayTag<Byte> {
             json.addProperty("name", this.getName());
         }
 
-        for (byte b : this) {
-            array.add(b);
+        for (int i : this) {
+            array.add(i);
         }
 
         json.add("value", array);
@@ -118,7 +122,7 @@ public class ByteArrayTag extends ArrayTag<Byte> {
     }
 
     @Override
-    public ByteArrayTag fromJson(JsonObject json, int depth, TagTypeRegistry registry) throws IOException {
+    public NbtIntArray fromJson(JsonObject json, int depth, NbtTypeRegistry registry) throws IOException {
         JsonArray array = json.getAsJsonArray("value");
 
         if (json.has("name")) {
@@ -127,18 +131,18 @@ public class ByteArrayTag extends ArrayTag<Byte> {
             this.setName(null);
         }
 
-        this.value = new byte[array.size()];
+        this.value = new int[array.size()];
 
         for (int i = 0; i < array.size(); i++) {
-            this.value[i] = array.get(i).getAsByte();
+            this.value[i] = array.get(i).getAsInt();
         }
 
         return this;
     }
 
     @Override
-    public String toSnbt(int depth, TagTypeRegistry registry, SnbtConfig config) {
-        StringBuilder sb = new StringBuilder("[B;");
+    public String toSnbt(int depth, NbtTypeRegistry registry, SnbtConfig config) {
+        StringBuilder sb = new StringBuilder("[I;");
 
         if (config.isPrettyPrint()) {
             if (this.value.length < config.getInlineThreshold()) {
@@ -161,7 +165,7 @@ public class ByteArrayTag extends ArrayTag<Byte> {
                 }
             }
 
-            sb.append(this.value[i]).append('B');
+            sb.append(this.value[i]);
         }
 
         if (config.isPrettyPrint() && this.value.length < config.getInlineThreshold()) {
@@ -179,23 +183,23 @@ public class ByteArrayTag extends ArrayTag<Byte> {
     }
 
     @Override
-    public Byte get(int index) {
+    public Integer get(int index) {
         return this.value[index];
     }
 
     @Override
-    public Byte set(int index, @NonNull Byte element) {
+    public Integer set(int index, @NonNull Integer element) {
         return this.value[index] = element;
     }
 
     @Override
-    public void insert(int index, @NonNull Byte... elements) {
+    public void insert(int index, @NonNull Integer... elements) {
         this.value = ArrayUtils.insert(index, this.value, ArrayUtils.toPrimitive(elements));
     }
 
     @Override
-    public Byte remove(int index) {
-        Byte previous = this.value[index];
+    public Integer remove(int index) {
+        Integer previous = this.value[index];
         this.value = ArrayUtils.remove(this.value, index);
 
         return previous;
@@ -203,21 +207,21 @@ public class ByteArrayTag extends ArrayTag<Byte> {
 
     @Override
     public void clear() {
-        this.value = new byte[0];
+        this.value = new int[0];
     }
 
     @Override
-    public Iterator<Byte> iterator() {
+    public Iterator<Integer> iterator() {
         return Arrays.asList(ArrayUtils.toObject(this.value)).iterator();
     }
 
     @Override
-    public void forEach(Consumer<? super Byte> action) {
+    public void forEach(Consumer<? super Integer> action) {
         Arrays.asList(ArrayUtils.toObject(this.value)).forEach(action);
     }
 
     @Override
-    public Spliterator<Byte> spliterator() {
+    public Spliterator<Integer> spliterator() {
         return Arrays.asList(ArrayUtils.toObject(this.value)).spliterator();
     }
 
@@ -226,7 +230,7 @@ public class ByteArrayTag extends ArrayTag<Byte> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ByteArrayTag that = (ByteArrayTag) o;
+        NbtIntArray that = (NbtIntArray) o;
 
         return Arrays.equals(value, that.value);
     }

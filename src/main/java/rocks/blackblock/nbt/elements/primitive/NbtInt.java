@@ -1,9 +1,9 @@
-package rocks.blackblock.nbt.tags.primitive;
+package rocks.blackblock.nbt.elements.primitive;
 
 import com.google.gson.JsonObject;
-import rocks.blackblock.nbt.api.registry.TagTypeRegistry;
+import rocks.blackblock.nbt.api.registry.NbtTypeRegistry;
 import rocks.blackblock.nbt.api.snbt.SnbtConfig;
-import rocks.blackblock.nbt.tags.TagType;
+import rocks.blackblock.nbt.elements.NbtType;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
@@ -18,7 +18,7 @@ import java.io.IOException;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-public class IntTag extends NumericalTag<Integer> {
+public class NbtInt extends AbstractNbtNumber<Integer> {
     private int value;
 
     /**
@@ -27,14 +27,14 @@ public class IntTag extends NumericalTag<Integer> {
      * @param name the tag's name.
      * @param value the tag's {@code int} value.
      */
-    public IntTag(String name, int value) {
+    public NbtInt(String name, int value) {
         this.setName(name);
         this.setValue(value);
     }
 
     @Override
     public byte getTypeId() {
-        return TagType.INT.getId();
+        return NbtType.INT.getId();
     }
 
     @Override
@@ -52,24 +52,24 @@ public class IntTag extends NumericalTag<Integer> {
     }
 
     @Override
-    public void write(DataOutput output, int depth, TagTypeRegistry registry) throws IOException {
+    public void write(DataOutput output, int depth, NbtTypeRegistry registry) throws IOException {
         output.writeInt(this.value);
     }
 
     @Override
-    public IntTag read(DataInput input, int depth, TagTypeRegistry registry) throws IOException {
+    public NbtInt read(DataInput input, int depth, NbtTypeRegistry registry) throws IOException {
         this.value = input.readInt();
 
         return this;
     }
 
     @Override
-    public String toSnbt(int depth, TagTypeRegistry registry, SnbtConfig config) {
+    public String toSnbt(int depth, NbtTypeRegistry registry, SnbtConfig config) {
         return Integer.toString(this.value);
     }
 
     @Override
-    public JsonObject toJson(int depth, TagTypeRegistry registry) {
+    public JsonObject toJson(int depth, NbtTypeRegistry registry) {
         JsonObject json = new JsonObject();
         json.addProperty("type", this.getTypeId());
 
@@ -83,7 +83,7 @@ public class IntTag extends NumericalTag<Integer> {
     }
 
     @Override
-    public IntTag fromJson(JsonObject json, int depth, TagTypeRegistry registry) {
+    public NbtInt fromJson(JsonObject json, int depth, NbtTypeRegistry registry) {
         if (json.has("name")) {
             this.setName(json.getAsJsonPrimitive("name").getAsString());
         } else {
@@ -100,9 +100,9 @@ public class IntTag extends NumericalTag<Integer> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        IntTag intTag = (IntTag) o;
+        NbtInt nbtInt = (NbtInt) o;
 
-        return value == intTag.value;
+        return value == nbtInt.value;
     }
 
     @Override

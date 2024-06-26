@@ -1,38 +1,36 @@
 package rocks.blackblock.nbt.io;
 
-import rocks.blackblock.nbt.api.Tag;
-import rocks.blackblock.nbt.api.registry.TagTypeRegistry;
-import rocks.blackblock.nbt.tags.TagType;
-import rocks.blackblock.nbt.tags.collection.CompoundTag;
+import rocks.blackblock.nbt.api.registry.NbtTypeRegistry;
+import rocks.blackblock.nbt.elements.NbtType;
+import rocks.blackblock.nbt.elements.collection.NbtCompound;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
 import java.io.DataInput;
-import java.io.DataInputStream;
 import java.io.IOException;
 
 /**
- * Used to read root {@link CompoundTag}s using a certain {@link TagTypeRegistry}.
+ * Used to read root {@link NbtCompound}s using a certain {@link NbtTypeRegistry}.
  *
  * @author dewy
  */
 @AllArgsConstructor
 public class NbtReader {
-    private @NonNull TagTypeRegistry typeRegistry;
+    private @NonNull NbtTypeRegistry typeRegistry;
 
     /**
-     * Reads a root {@link CompoundTag} from a {@link DataInput} stream.
+     * Reads a root {@link NbtCompound} from a {@link DataInput} stream.
      *
      * @param input the stream to read from.
-     * @return the root {@link CompoundTag} read from the stream.
+     * @return the root {@link NbtCompound} read from the stream.
      * @throws IOException if any I/O error occurs.
      */
-    public CompoundTag fromStream(@NonNull DataInput input) throws IOException {
-        if (input.readByte() != TagType.COMPOUND.getId()) {
+    public NbtCompound fromStream(@NonNull DataInput input) throws IOException {
+        if (input.readByte() != NbtType.COMPOUND.getId()) {
             throw new IOException("Root tag in NBT structure must be a compound tag.");
         }
 
-        CompoundTag result = new CompoundTag();
+        NbtCompound result = new NbtCompound();
 
         result.setName(input.readUTF());
         result.read(input, 0, this.typeRegistry);
@@ -41,20 +39,20 @@ public class NbtReader {
     }
 
     /**
-     * Returns the {@link TagTypeRegistry} currently in use by this reader.
+     * Returns the {@link NbtTypeRegistry} currently in use by this reader.
      *
-     * @return the {@link TagTypeRegistry} currently in use by this reader.
+     * @return the {@link NbtTypeRegistry} currently in use by this reader.
      */
-    public TagTypeRegistry getTypeRegistry() {
+    public NbtTypeRegistry getTypeRegistry() {
         return typeRegistry;
     }
 
     /**
-     * Sets the {@link TagTypeRegistry} currently in use by this reader. Used to utilise custom-made tag types.
+     * Sets the {@link NbtTypeRegistry} currently in use by this reader. Used to utilise custom-made tag types.
      *
-     * @param typeRegistry the new {@link TagTypeRegistry} to be set.
+     * @param typeRegistry the new {@link NbtTypeRegistry} to be set.
      */
-    public void setTypeRegistry(@NonNull TagTypeRegistry typeRegistry) {
+    public void setTypeRegistry(@NonNull NbtTypeRegistry typeRegistry) {
         this.typeRegistry = typeRegistry;
     }
 }

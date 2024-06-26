@@ -1,8 +1,8 @@
-package rocks.blackblock.nbt.tags.array;
+package rocks.blackblock.nbt.elements.array;
 
-import rocks.blackblock.nbt.api.Tag;
+import rocks.blackblock.nbt.api.NbtElement;
 import rocks.blackblock.nbt.api.json.JsonSerializable;
-import rocks.blackblock.nbt.api.registry.TagTypeRegistry;
+import rocks.blackblock.nbt.api.registry.NbtTypeRegistry;
 import rocks.blackblock.nbt.api.snbt.SnbtConfig;
 import rocks.blackblock.nbt.api.snbt.SnbtSerializable;
 
@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  * @param <T> the type held in the array.
  * @author dewy
  */
-public abstract class ArrayTag<T> extends Tag implements SnbtSerializable, JsonSerializable, Iterable<T> {
+public abstract class AbstractNbtList<T> extends NbtElement implements SnbtSerializable, JsonSerializable, Iterable<T> {
     public static final Pattern NUMBER_PATTERN = Pattern.compile("[-0-9]+");
 
     /**
@@ -76,6 +76,6 @@ public abstract class ArrayTag<T> extends Tag implements SnbtSerializable, JsonS
 
     @Override
     public String toString() {
-        return this.toSnbt(0, new TagTypeRegistry(), new SnbtConfig());
+        return this.toSnbt(0, new NbtTypeRegistry(), new SnbtConfig());
     }
 }

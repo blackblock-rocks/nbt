@@ -1,18 +1,18 @@
-package rocks.blackblock.nbt.tags.collection;
+package rocks.blackblock.nbt.elements.collection;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import rocks.blackblock.nbt.api.Tag;
+import rocks.blackblock.nbt.api.NbtElement;
 import rocks.blackblock.nbt.api.json.JsonSerializable;
-import rocks.blackblock.nbt.api.registry.TagTypeRegistry;
-import rocks.blackblock.nbt.api.registry.TagTypeRegistryException;
+import rocks.blackblock.nbt.api.registry.NbtTypeRegistry;
+import rocks.blackblock.nbt.api.registry.NbtTypeRegistryException;
 import rocks.blackblock.nbt.api.snbt.SnbtConfig;
 import rocks.blackblock.nbt.api.snbt.SnbtSerializable;
-import rocks.blackblock.nbt.tags.TagType;
-import rocks.blackblock.nbt.tags.array.ByteArrayTag;
-import rocks.blackblock.nbt.tags.array.IntArrayTag;
-import rocks.blackblock.nbt.tags.array.LongArrayTag;
-import rocks.blackblock.nbt.tags.primitive.*;
+import rocks.blackblock.nbt.elements.NbtType;
+import rocks.blackblock.nbt.elements.array.NbtByteArray;
+import rocks.blackblock.nbt.elements.array.NbtIntArray;
+import rocks.blackblock.nbt.elements.array.NbtLongArray;
+import rocks.blackblock.nbt.elements.primitive.*;
 import rocks.blackblock.nbt.utils.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
@@ -30,13 +30,13 @@ import java.util.function.Consumer;
  * @author dewy
  */
 @AllArgsConstructor
-public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializable, Iterable<Tag> {
-    private @NonNull Map<String, Tag> value;
+public class NbtCompound extends NbtElement implements SnbtSerializable, JsonSerializable, Iterable<NbtElement> {
+    private @NonNull Map<String, NbtElement> value;
 
     /**
      * Constructs an empty, unnamed compound tag.
      */
-    public CompoundTag() {
+    public NbtCompound() {
         this(null, new LinkedHashMap<>());
     }
 
@@ -45,7 +45,7 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
      *
      * @param name the tag's name.
      */
-    public CompoundTag(String name) {
+    public NbtCompound(String name) {
         this(name, new LinkedHashMap<>());
     }
 
@@ -55,18 +55,18 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
      * @param name the tag's name.
      * @param value the tag's {@code Map<>} value.
      */
-    public CompoundTag(String name, @NonNull Map<String, Tag> value) {
+    public NbtCompound(String name, @NonNull Map<String, NbtElement> value) {
         this.setName(name);
         this.setValue(value);
     }
 
     @Override
     public byte getTypeId() {
-        return TagType.COMPOUND.getId();
+        return NbtType.COMPOUND.getId();
     }
 
     @Override
-    public Map<String, Tag> getValue() {
+    public Map<String, NbtElement> getValue() {
         return this.value;
     }
 
@@ -75,17 +75,17 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
      *
      * @param value new {@code Map<>} value to be set.
      */
-    public void setValue(@NonNull Map<String, Tag> value) {
+    public void setValue(@NonNull Map<String, NbtElement> value) {
         this.value = value;
     }
 
     @Override
-    public void write(DataOutput output, int depth, TagTypeRegistry registry) throws IOException {
+    public void write(DataOutput output, int depth, NbtTypeRegistry registry) throws IOException {
         if (depth > 512) {
             throw new IOException("NBT structure too complex (depth > 512).");
         }
 
-        for (Tag tag : this) {
+        for (NbtElement tag : this) {
             output.writeByte(tag.getTypeId());
             output.writeUTF(tag.getName());
 
@@ -96,17 +96,17 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
     }
 
     @Override
-    public CompoundTag read(DataInput input, int depth, TagTypeRegistry registry) throws IOException {
+    public NbtCompound read(DataInput input, int depth, NbtTypeRegistry registry) throws IOException {
         if (depth > 512) {
             throw new IOException("NBT structure too complex (depth > 512).");
         }
 
-        Map<String, Tag> tags = new LinkedHashMap<>();
+        Map<String, NbtElement> tags = new LinkedHashMap<>();
 
         byte nextTypeId;
-        Tag nextTag;
+        NbtElement nextTag;
         while ((nextTypeId = input.readByte()) != 0) {
-            Class<? extends Tag> tagClass = registry.getClassFromId(nextTypeId);
+            Class<? extends NbtElement> tagClass = registry.getClassFromId(nextTypeId);
 
             if (tagClass == null) {
                 throw new IOException("Tag type with ID " + nextTypeId + " not present in tag type registry.");
@@ -114,7 +114,7 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
 
             try {
                 nextTag = registry.instantiate(tagClass);
-            } catch (TagTypeRegistryException e) {
+            } catch (NbtTypeRegistryException e) {
                 throw new IOException(e);
             }
 
@@ -130,7 +130,7 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
     }
 
     @Override
-    public JsonObject toJson(int depth, TagTypeRegistry registry) throws IOException {
+    public JsonObject toJson(int depth, NbtTypeRegistry registry) throws IOException {
         if (depth > 512) {
             throw new IOException("NBT structure too complex (depth > 512).");
         }
@@ -143,7 +143,7 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
             json.addProperty("name", this.getName());
         }
 
-        for (Tag tag : this) {
+        for (NbtElement tag : this) {
             try {
                 value.add(tag.getName(), ((JsonSerializable) tag).toJson(depth + 1, registry));
             } catch (ClassCastException e) {
@@ -157,7 +157,7 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
     }
 
     @Override
-    public CompoundTag fromJson(JsonObject json, int depth, TagTypeRegistry registry) throws IOException {
+    public NbtCompound fromJson(JsonObject json, int depth, NbtTypeRegistry registry) throws IOException {
         if (depth > 512) {
             throw new IOException("NBT structure too complex (depth > 512).");
         }
@@ -170,15 +170,15 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
             this.setName(null);
         }
 
-        Map<String, Tag> tags = new LinkedHashMap<>();
+        Map<String, NbtElement> tags = new LinkedHashMap<>();
 
         byte nextTypeId;
-        Tag nextTag;
+        NbtElement nextTag;
         for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject("value").entrySet()) {
             JsonObject entryJson = entry.getValue().getAsJsonObject();
 
             nextTypeId = entryJson.get("type").getAsByte();
-            Class<? extends Tag> tagClass = registry.getClassFromId(nextTypeId);
+            Class<? extends NbtElement> tagClass = registry.getClassFromId(nextTypeId);
 
             if (tagClass == null) {
                 throw new IOException("Tag type with ID " + nextTypeId + " not present in tag type registry.");
@@ -186,7 +186,7 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
 
             try {
                 nextTag = registry.instantiate(tagClass);
-            } catch (TagTypeRegistryException e) {
+            } catch (NbtTypeRegistryException e) {
                 throw new IOException(e);
             }
 
@@ -200,7 +200,7 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
     }
 
     @Override
-    public String toSnbt(int depth, TagTypeRegistry registry, SnbtConfig config) {
+    public String toSnbt(int depth, NbtTypeRegistry registry, SnbtConfig config) {
         if (this.value.isEmpty()) {
             return "{}";
         }
@@ -212,7 +212,7 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
         }
 
         boolean first = true;
-        for (Tag tag : this) {
+        for (NbtElement tag : this) {
             if (!first) {
                 if (config.isPrettyPrint()) {
                     sb.append(",\n").append(StringUtils.multiplyIndent(depth + 1, config));
@@ -271,7 +271,7 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
      * @return the previous value mapped with the tag's name as type E if provided, or null if there wasn't any.
      * @throws NullPointerException if the tag's name is null.
      */
-    public <E extends Tag> E put(@NonNull Tag tag) {
+    public <E extends NbtElement> E put(@NonNull NbtElement tag) {
         return (E) this.value.put(tag.getName(), tag);
     }
 
@@ -283,58 +283,58 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
      * @param <E> the type of an existing tag you believe you may be replacing (optional).
      * @return the previous value mapped with the tag's name as type E if provided, or null if there wasn't any.
      */
-    public <E extends Tag> E put(@NonNull String name, @NonNull Tag tag) {
+    public <E extends NbtElement> E put(@NonNull String name, @NonNull NbtElement tag) {
         tag.setName(name);
 
         return this.put(tag);
     }
 
     public void putByte(@NonNull String name, byte value) {
-        this.put(name, new ByteTag(name, value));
+        this.put(name, new NbtByte(name, value));
     }
 
     public void putShort(@NonNull String name, short value) {
-        this.put(name, new ShortTag(name, value));
+        this.put(name, new NbtShort(name, value));
     }
 
     public void putInt(@NonNull String name, int value) {
-        this.put(name, new IntTag(name, value));
+        this.put(name, new NbtInt(name, value));
     }
 
     public void putLong(@NonNull String name, long value) {
-        this.put(name, new LongTag(name, value));
+        this.put(name, new NbtLong(name, value));
     }
 
     public void putFloat(@NonNull String name, float value) {
-        this.put(name, new FloatTag(name, value));
+        this.put(name, new NbtFloat(name, value));
     }
 
     public void putDouble(@NonNull String name, double value) {
-        this.put(name, new DoubleTag(name, value));
+        this.put(name, new NbtDouble(name, value));
     }
 
     public void putByteArray(@NonNull String name, @NonNull byte[] value) {
-        this.put(name, new ByteArrayTag(name, value));
+        this.put(name, new NbtByteArray(name, value));
     }
 
     public void putString(@NonNull String name, @NonNull String value) {
-        this.put(name, new StringTag(name, value));
+        this.put(name, new NbtString(name, value));
     }
 
-    public <T extends Tag> void putList(@NonNull String name, List<T> value) {
-        this.put(name, new ListTag<>(name, value));
+    public <T extends NbtElement> void putList(@NonNull String name, List<T> value) {
+        this.put(name, new NbtList<>(name, value));
     }
 
-    public void putCompound(@NonNull String name, @NonNull Map<String, Tag> value) {
-        this.put(name, new CompoundTag(name, value));
+    public void putCompound(@NonNull String name, @NonNull Map<String, NbtElement> value) {
+        this.put(name, new NbtCompound(name, value));
     }
 
     public void putIntArray(@NonNull String name, @NonNull int[] value) {
-        this.put(name, new IntArrayTag(name, value));
+        this.put(name, new NbtIntArray(name, value));
     }
 
     public void putLongArray(@NonNull String name, @NonNull long[] value) {
-        this.put(name, new LongArrayTag(name, value));
+        this.put(name, new NbtLongArray(name, value));
     }
 
     /**
@@ -344,7 +344,7 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
      * @param <T> the tag type you believe you are removing (optional).
      * @return the previous value associated with {@code key} as type T if provided.
      */
-    public <T extends Tag> T remove(@NonNull String key) {
+    public <T extends NbtElement> T remove(@NonNull String key) {
         return (T) this.value.remove(key);
     }
 
@@ -355,55 +355,55 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
      * @param <T> the tag type you believe you are retrieving.
      * @return the value associated with {@code key} as type T.
      */
-    public <T extends Tag> T get(@NonNull String key) {
+    public <T extends NbtElement> T get(@NonNull String key) {
         return (T) this.value.get(key);
     }
 
-    public ByteTag getByte(@NonNull String key) {
+    public NbtByte getByte(@NonNull String key) {
         return this.get(key);
     }
 
-    public ShortTag getShort(@NonNull String key) {
+    public NbtShort getShort(@NonNull String key) {
         return this.get(key);
     }
 
-    public IntTag getInt(@NonNull String key) {
+    public NbtInt getInt(@NonNull String key) {
         return this.get(key);
     }
 
-    public LongTag getLong(@NonNull String key) {
+    public NbtLong getLong(@NonNull String key) {
         return this.get(key);
     }
 
-    public FloatTag getFloat(@NonNull String key) {
+    public NbtFloat getFloat(@NonNull String key) {
         return this.get(key);
     }
 
-    public DoubleTag getDouble(@NonNull String key) {
+    public NbtDouble getDouble(@NonNull String key) {
         return this.get(key);
     }
 
-    public ByteArrayTag getByteArray(@NonNull String key) {
+    public NbtByteArray getByteArray(@NonNull String key) {
         return this.get(key);
     }
 
-    public StringTag getString(@NonNull String key) {
+    public NbtString getString(@NonNull String key) {
         return this.get(key);
     }
 
-    public <T extends Tag> ListTag<T> getList(@NonNull String key) {
+    public <T extends NbtElement> NbtList<T> getList(@NonNull String key) {
         return this.get(key);
     }
 
-    public CompoundTag getCompound(@NonNull String key) {
+    public NbtCompound getCompound(@NonNull String key) {
         return this.get(key);
     }
 
-    public IntArrayTag getIntArray(@NonNull String key) {
+    public NbtIntArray getIntArray(@NonNull String key) {
         return this.get(key);
     }
 
-    public LongArrayTag getLongArray(@NonNull String key) {
+    public NbtLongArray getLongArray(@NonNull String key) {
         return this.get(key);
     }
 
@@ -433,39 +433,39 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
     }
 
     public boolean containsByte(@NonNull String key) {
-        return this.contains(key, TagType.BYTE.getId());
+        return this.contains(key, NbtType.BYTE.getId());
     }
 
     public boolean containsShort(@NonNull String key) {
-        return this.contains(key, TagType.SHORT.getId());
+        return this.contains(key, NbtType.SHORT.getId());
     }
 
     public boolean containsInt(@NonNull String key) {
-        return this.contains(key, TagType.INT.getId());
+        return this.contains(key, NbtType.INT.getId());
     }
 
     public boolean containsLong(@NonNull String key) {
-        return this.contains(key, TagType.LONG.getId());
+        return this.contains(key, NbtType.LONG.getId());
     }
 
     public boolean containsFloat(@NonNull String key) {
-        return this.contains(key, TagType.FLOAT.getId());
+        return this.contains(key, NbtType.FLOAT.getId());
     }
 
     public boolean containsDouble(@NonNull String key) {
-        return this.contains(key, TagType.DOUBLE.getId());
+        return this.contains(key, NbtType.DOUBLE.getId());
     }
 
     public boolean containsByteArray(@NonNull String key) {
-        return this.contains(key, TagType.BYTE_ARRAY.getId());
+        return this.contains(key, NbtType.BYTE_ARRAY.getId());
     }
 
     public boolean containsString(@NonNull String key) {
-        return this.contains(key, TagType.STRING.getId());
+        return this.contains(key, NbtType.STRING.getId());
     }
 
     public boolean containsList(@NonNull String key) {
-        return this.contains(key, TagType.LIST.getId());
+        return this.contains(key, NbtType.LIST.getId());
     }
 
     public boolean containsListOf(@NonNull String key, byte of) {
@@ -473,23 +473,23 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
     }
 
     public boolean containsCompound(@NonNull String key) {
-        return this.contains(key, TagType.COMPOUND.getId());
+        return this.contains(key, NbtType.COMPOUND.getId());
     }
 
     public boolean containsIntArray(@NonNull String key) {
-        return this.contains(key, TagType.INT_ARRAY.getId());
+        return this.contains(key, NbtType.INT_ARRAY.getId());
     }
 
     public boolean containsLongArray(@NonNull String key) {
-        return this.contains(key, TagType.LONG_ARRAY.getId());
+        return this.contains(key, NbtType.LONG_ARRAY.getId());
     }
 
     /**
-     * Returns all {@link Tag}s contained within this compound.
+     * Returns all {@link NbtElement}s contained within this compound.
      *
-     * @return all {@link Tag}s contained within this compound.
+     * @return all {@link NbtElement}s contained within this compound.
      */
-    public Collection<Tag> values() {
+    public Collection<NbtElement> values() {
         return this.value.values();
     }
 
@@ -510,23 +510,23 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
     }
 
     @Override
-    public Iterator<Tag> iterator() {
+    public Iterator<NbtElement> iterator() {
         return this.value.values().iterator();
     }
 
     @Override
-    public void forEach(Consumer<? super Tag> action) {
+    public void forEach(Consumer<? super NbtElement> action) {
         this.value.values().forEach(action);
     }
 
     @Override
-    public Spliterator<Tag> spliterator() {
+    public Spliterator<NbtElement> spliterator() {
         return this.value.values().spliterator();
     }
 
     @Override
     public String toString() {
-        return this.toSnbt(0, new TagTypeRegistry(), new SnbtConfig());
+        return this.toSnbt(0, new NbtTypeRegistry(), new SnbtConfig());
     }
 
     @Override
@@ -534,7 +534,7 @@ public class CompoundTag extends Tag implements SnbtSerializable, JsonSerializab
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        CompoundTag that = (CompoundTag) o;
+        NbtCompound that = (NbtCompound) o;
 
         return Objects.equals(value, that.value);
     }

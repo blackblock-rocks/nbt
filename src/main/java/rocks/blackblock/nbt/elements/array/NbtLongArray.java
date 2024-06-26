@@ -1,11 +1,11 @@
-package rocks.blackblock.nbt.tags.array;
+package rocks.blackblock.nbt.elements.array;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import rocks.blackblock.nbt.api.registry.TagTypeRegistry;
+import rocks.blackblock.nbt.api.registry.NbtTypeRegistry;
 import rocks.blackblock.nbt.api.snbt.SnbtConfig;
-import rocks.blackblock.nbt.tags.TagType;
-import rocks.blackblock.nbt.tags.primitive.IntTag;
+import rocks.blackblock.nbt.elements.NbtType;
+import rocks.blackblock.nbt.elements.primitive.NbtLong;
 import rocks.blackblock.nbt.utils.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -22,88 +22,88 @@ import java.util.Spliterator;
 import java.util.function.Consumer;
 
 /**
- * The int array tag (type ID 11) is used for storing {@code int[]} arrays in NBT structures.
- * It is not stored as a list of {@link IntTag}s.
+ * The long array tag (type ID 12) is used for storing {@code long[]} arrays in NBT structures.
+ * It is not stored as a list of {@link NbtLong}s.
  *
  * @author dewy
  */
 @NoArgsConstructor
 @AllArgsConstructor
-public class IntArrayTag extends ArrayTag<Integer> {
-    private @NonNull int[] value;
+public class NbtLongArray extends AbstractNbtList<Long> {
+    private @NonNull long[] value;
 
     /**
-     * Constructs an int array tag with a given name and value.
+     * Constructs a long array tag with a given name and value.
      *
      * @param name the tag's name.
-     * @param value the tag's {@code int[]} value.
+     * @param value the tag's {@code long[]} value.
      */
-    public IntArrayTag(String name, @NonNull int[] value) {
+    public NbtLongArray(String name, @NonNull long[] value) {
         this.setName(name);
         this.setValue(value);
     }
 
     /**
-     * Constructs an unnamed int array tag using a {@code List<>} object.
+     * Constructs an unnamed long array tag using a {@code List<>} object.
      *
-     * @param value the tag's {@code List<>} value, to be converted to a primitive {@code int[]} array.
+     * @param value the tag's {@code List<>} value, to be converted to a primitive {@code long[]} array.
      */
-    public IntArrayTag(@NonNull List<Integer> value) {
+    public NbtLongArray(@NonNull List<Long> value) {
         this(null, value);
     }
 
     /**
-     * Constructs an int array tag with a given name, using a List object to determine its {@code int[]} value.
+     * Constructs a long array tag with a given name, using a List object to determine its {@code long[]} value.
      *
      * @param name the tag's name.
-     * @param value the tag's {@code List<>} value, to be converted to a primitive {@code int[]} array.
+     * @param value the tag's {@code List<>} value, to be converted to a primitive {@code long[]} array.
      */
-    public IntArrayTag(String name, @NonNull List<Integer> value) {
+    public NbtLongArray(String name, @NonNull List<Long> value) {
         this.setName(name);
-        this.setValue(ArrayUtils.toPrimitive(value.toArray(new Integer[0])));
+        this.setValue(ArrayUtils.toPrimitive(value.toArray(new Long[0])));
     }
 
     @Override
     public byte getTypeId() {
-        return TagType.INT_ARRAY.getId();
+        return NbtType.LONG_ARRAY.getId();
     }
 
     @Override
-    public int[] getValue() {
+    public long[] getValue() {
         return this.value;
     }
 
     /**
-     * Sets the {@code int[]} value of this int array tag.
+     * Sets the {@code long[]} value of this long array tag.
      *
-     * @param value new {@code int[]} value to be set.
+     * @param value new {@code long[]} value to be set.
      */
-    public void setValue(@NonNull int[] value) {
+    public void setValue(@NonNull long[] value) {
         this.value = value;
     }
 
     @Override
-    public void write(DataOutput output, int depth, TagTypeRegistry registry) throws IOException {
+    public void write(DataOutput output, int depth, NbtTypeRegistry registry) throws IOException {
         output.writeInt(this.value.length);
 
-        for (int i : this) {
-            output.writeInt(i);
+        for (long l : this) {
+            output.writeLong(l);
         }
     }
 
     @Override
-    public IntArrayTag read(DataInput input, int depth, TagTypeRegistry registry) throws IOException {
-        this.value = new int[input.readInt()];
+    public NbtLongArray read(DataInput input, int depth, NbtTypeRegistry registry) throws IOException {
+        this.value = new long[input.readInt()];
 
         for (int i = 0; i < this.value.length; i++) {
-            this.value[i] = input.readInt();
+            this.value[i] = input.readLong();
         }
 
         return this;
     }
 
     @Override
-    public JsonObject toJson(int depth, TagTypeRegistry registry) throws IOException {
+    public JsonObject toJson(int depth, NbtTypeRegistry registry) throws IOException {
         JsonObject json = new JsonObject();
         JsonArray array = new JsonArray();
         json.addProperty("type", this.getTypeId());
@@ -112,8 +112,8 @@ public class IntArrayTag extends ArrayTag<Integer> {
             json.addProperty("name", this.getName());
         }
 
-        for (int i : this) {
-            array.add(i);
+        for (long l : this) {
+            array.add(l);
         }
 
         json.add("value", array);
@@ -122,7 +122,7 @@ public class IntArrayTag extends ArrayTag<Integer> {
     }
 
     @Override
-    public IntArrayTag fromJson(JsonObject json, int depth, TagTypeRegistry registry) throws IOException {
+    public NbtLongArray fromJson(JsonObject json, int depth, NbtTypeRegistry registry) throws IOException {
         JsonArray array = json.getAsJsonArray("value");
 
         if (json.has("name")) {
@@ -131,18 +131,18 @@ public class IntArrayTag extends ArrayTag<Integer> {
             this.setName(null);
         }
 
-        this.value = new int[array.size()];
+        this.value = new long[array.size()];
 
         for (int i = 0; i < array.size(); i++) {
-            this.value[i] = array.get(i).getAsInt();
+            this.value[i] = array.get(i).getAsLong();
         }
 
         return this;
     }
 
     @Override
-    public String toSnbt(int depth, TagTypeRegistry registry, SnbtConfig config) {
-        StringBuilder sb = new StringBuilder("[I;");
+    public String toSnbt(int depth, NbtTypeRegistry registry, SnbtConfig config) {
+        StringBuilder sb = new StringBuilder("[L;");
 
         if (config.isPrettyPrint()) {
             if (this.value.length < config.getInlineThreshold()) {
@@ -165,7 +165,7 @@ public class IntArrayTag extends ArrayTag<Integer> {
                 }
             }
 
-            sb.append(this.value[i]);
+            sb.append(this.value[i]).append('L');
         }
 
         if (config.isPrettyPrint() && this.value.length < config.getInlineThreshold()) {
@@ -183,23 +183,23 @@ public class IntArrayTag extends ArrayTag<Integer> {
     }
 
     @Override
-    public Integer get(int index) {
+    public Long get(int index) {
         return this.value[index];
     }
 
     @Override
-    public Integer set(int index, @NonNull Integer element) {
+    public Long set(int index, @NonNull Long element) {
         return this.value[index] = element;
     }
 
     @Override
-    public void insert(int index, @NonNull Integer... elements) {
+    public void insert(int index, @NonNull Long... elements) {
         this.value = ArrayUtils.insert(index, this.value, ArrayUtils.toPrimitive(elements));
     }
 
     @Override
-    public Integer remove(int index) {
-        Integer previous = this.value[index];
+    public Long remove(int index) {
+        Long previous = this.value[index];
         this.value = ArrayUtils.remove(this.value, index);
 
         return previous;
@@ -207,21 +207,21 @@ public class IntArrayTag extends ArrayTag<Integer> {
 
     @Override
     public void clear() {
-        this.value = new int[0];
+        this.value = new long[0];
     }
 
     @Override
-    public Iterator<Integer> iterator() {
+    public Iterator<Long> iterator() {
         return Arrays.asList(ArrayUtils.toObject(this.value)).iterator();
     }
 
     @Override
-    public void forEach(Consumer<? super Integer> action) {
+    public void forEach(Consumer<? super Long> action) {
         Arrays.asList(ArrayUtils.toObject(this.value)).forEach(action);
     }
 
     @Override
-    public Spliterator<Integer> spliterator() {
+    public Spliterator<Long> spliterator() {
         return Arrays.asList(ArrayUtils.toObject(this.value)).spliterator();
     }
 
@@ -230,7 +230,7 @@ public class IntArrayTag extends ArrayTag<Integer> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        IntArrayTag that = (IntArrayTag) o;
+        NbtLongArray that = (NbtLongArray) o;
 
         return Arrays.equals(value, that.value);
     }
