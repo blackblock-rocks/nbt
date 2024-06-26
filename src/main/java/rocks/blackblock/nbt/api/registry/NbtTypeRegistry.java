@@ -4,9 +4,11 @@ import rocks.blackblock.nbt.api.NbtElement;
 import rocks.blackblock.nbt.elements.NbtType;
 import lombok.NonNull;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * A registry mapping {@code byte} tag type IDs to tag type classes. Used to register custom-made {@link NbtElement} types.
@@ -14,7 +16,7 @@ import java.util.Map;
  * @author dewy
  */
 public class NbtTypeRegistry {
-    private final Map<Byte, @NonNull Class<? extends NbtElement>> registry = new HashMap<>();
+    private final Map<Byte, NbtElementInfo<? extends NbtElement>> registry = new HashMap<>();
 
     {
         NbtType.registerAll(this);
@@ -27,27 +29,18 @@ public class NbtTypeRegistry {
      * @param clazz the tag type class.
      * @throws NbtTypeRegistryException if the ID provided is either registered already or is a reserved ID (0-12 inclusive).
      */
-    public void registerTagType(byte id, @NonNull Class<? extends NbtElement> clazz) throws NbtTypeRegistryException {
+    public <T extends NbtElement> void registerTagType(byte id, @NonNull Class<T> clazz, Supplier<T> instantiator) throws NbtTypeRegistryException {
         if (id == 0) {
             throw new NbtTypeRegistryException("Cannot register NBT tag type " + clazz + " with ID " + id + ", as that ID is reserved.");
         }
 
         if (this.registry.containsKey(id)) {
-            throw new NbtTypeRegistryException("Cannot register NBT tag type " + clazz + " with ID " + id + ", as that ID is already in use by the tag type " + this.registry.get(id).getSimpleName());
+            throw new NbtTypeRegistryException("Cannot register NBT tag type " + clazz + " with ID " + id + ", as that ID is already in use by the tag type " + this.registry.get(id).getElementClass().getSimpleName());
         }
 
-        if (registry.containsValue(clazz)) {
-            byte existing = 0;
-            for (Map.Entry<Byte, Class<? extends NbtElement>> entry : this.registry.entrySet()) {
-                if (entry.getValue().equals(clazz)) {
-                    existing = entry.getKey();
-                }
-            }
+        NbtElementInfo<T> info = new NbtElementInfo<>(clazz, instantiator);
 
-            throw new NbtTypeRegistryException("NBT tag type " + clazz.getSimpleName() + " already registered under ID " + existing);
-        }
-
-        this.registry.put(id, clazz);
+        this.registry.put(id, info);
     }
 
     /**
@@ -82,7 +75,22 @@ public class NbtTypeRegistry {
      * @return a tag type class value from the registry from a provided {@code byte} ID.
      */
     public Class<? extends NbtElement> getClassFromId(byte id) {
-        return this.registry.get(id);
+        return this.registry.get(id).getElementClass();
+    }
+
+    /**
+     * Get a new instance by its id
+     *
+     * @since   1.6.0
+     */
+    public NbtElement createInstanceFromId(byte id) {
+        NbtElementInfo info = this.registry.get(id);
+
+        if (info == null) {
+            return null;
+        }
+
+        return info.createInstance();
     }
 
     /**
@@ -101,6 +109,30 @@ public class NbtTypeRegistry {
             return constructor.newInstance();
         } catch (ReflectiveOperationException e) {
             throw new NbtTypeRegistryException("Instance of tag type class " + clazz.getSimpleName() + " could not be created.", e);
+        }
+    }
+
+    /**
+     * NBT Element info
+     *
+     * @since   1.6.0
+     */
+    public static class NbtElementInfo<T extends NbtElement> {
+
+        public final @NonNull Class<T> elementClass;
+        public final Supplier<T> instantiator;
+
+        public NbtElementInfo(@NonNull Class<T> elementClass, Supplier<T> instantiator) {
+            this.elementClass = elementClass;
+            this.instantiator = instantiator;
+        }
+
+        public @NonNull Class<T> getElementClass() {
+            return this.elementClass;
+        }
+
+        public @NonNull T createInstance() {
+            return this.instantiator.get();
         }
     }
 }

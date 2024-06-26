@@ -1,5 +1,6 @@
 package rocks.blackblock.nbt.io;
 
+import rocks.blackblock.nbt.api.NbtElement;
 import rocks.blackblock.nbt.api.registry.NbtTypeRegistry;
 import rocks.blackblock.nbt.elements.NbtType;
 import rocks.blackblock.nbt.elements.collection.NbtCompound;
@@ -19,13 +20,40 @@ public class NbtReader {
     private @NonNull NbtTypeRegistry typeRegistry;
 
     /**
+     * Read a non-root NBT element from a stream.
+     *
+     * @author  Jelle De Loecker jelle@elevenways.be
+     * @since   1.6.0
+     *
+     * @throws IOException if any I/O error occurs.
+     *
+     * @param  input the stream to read from.
+     *
+     * @return The {@link NbtElement} read from the stream.
+     */
+    public NbtElement elementFromStream(@NonNull DataInput input) throws IOException {
+
+        byte type = input.readByte();
+
+        NbtElement result = this.typeRegistry.createInstanceFromId(type);
+
+        if (result == null) {
+            return null;
+        }
+
+        result.read(input, 0, this.typeRegistry);
+
+        return result;
+    }
+
+    /**
      * Reads a root {@link NbtCompound} from a {@link DataInput} stream.
      *
      * @param input the stream to read from.
      * @return the root {@link NbtCompound} read from the stream.
      * @throws IOException if any I/O error occurs.
      */
-    public NbtCompound fromStream(@NonNull DataInput input) throws IOException {
+    public NbtCompound rootFromStream(@NonNull DataInput input) throws IOException {
         if (input.readByte() != NbtType.COMPOUND.getId()) {
             throw new IOException("Root tag in NBT structure must be a compound tag.");
         }

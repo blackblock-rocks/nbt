@@ -2,6 +2,7 @@ package rocks.blackblock.nbt;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import rocks.blackblock.nbt.api.NbtElement;
 import rocks.blackblock.nbt.api.registry.NbtTypeRegistry;
 import rocks.blackblock.nbt.api.snbt.SnbtConfig;
 import rocks.blackblock.nbt.io.CompressionType;
@@ -173,14 +174,25 @@ public class Nbt {
     }
 
     /**
-     * Reads an NBT data structure (root {@link NbtCompound}) from a {@link DataInput} stream.
+     * Reads a NBT data structure
      *
      * @param input the stream to read from.
      * @return the root {@link NbtCompound} read from the stream.
      * @throws IOException if any I/O error occurs.
      */
-    public NbtCompound fromStream(@NonNull DataInput input) throws IOException {
-        return this.reader.fromStream(input);
+    public NbtElement elementFromStream(@NonNull DataInput input) throws IOException {
+        return this.reader.elementFromStream(input);
+    }
+
+    /**
+     * Reads a NBT data structure (root {@link NbtCompound}) from a {@link DataInput} stream.
+     *
+     * @param input the stream to read from.
+     * @return the root {@link NbtCompound} read from the stream.
+     * @throws IOException if any I/O error occurs.
+     */
+    public NbtCompound rootFromStream(@NonNull DataInput input) throws IOException {
+        return this.reader.rootFromStream(input);
     }
 
     /**
@@ -209,7 +221,7 @@ public class Nbt {
                 throw new IllegalStateException("Illegal compression type. This should never happen.");
         }
 
-        return this.fromStream(in);
+        return this.rootFromStream(in);
     }
 
     /**
@@ -232,10 +244,10 @@ public class Nbt {
      * @return the root {@link NbtCompound} read from the stream.
      * @throws IOException if any I/O error occurs.
      */
-    public NbtCompound fromByteArray(@NonNull byte[] bytes) throws IOException {
+    public NbtElement fromByteArray(@NonNull byte[] bytes) throws IOException {
         @Cleanup DataInputStream bais = new DataInputStream(new BufferedInputStream(new ByteArrayInputStream(bytes)));
 
-        return fromStream(bais);
+        return this.elementFromStream(bais);
     }
 
     /**
@@ -245,7 +257,7 @@ public class Nbt {
      * @return the decoded root {@link NbtCompound}.
      * @throws IOException if any I/O error occurs.
      */
-    public NbtCompound fromBase64(@NonNull String encoded) throws IOException {
+    public NbtElement fromBase64(@NonNull String encoded) throws IOException {
         return fromByteArray(Base64.getDecoder().decode(encoded));
     }
 

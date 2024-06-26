@@ -9,6 +9,8 @@ import rocks.blackblock.nbt.elements.collection.NbtCompound;
 import rocks.blackblock.nbt.elements.collection.NbtList;
 import rocks.blackblock.nbt.elements.primitive.*;
 
+import java.util.ArrayList;
+
 /**
  * Defines the 12 standard NBT tag types and their IDs supported by this library, laid out in the Notchian spec.
  *
@@ -111,18 +113,18 @@ public enum NbtType {
 
     public static void registerAll(NbtTypeRegistry registry) {
         try {
-            registry.registerTagType(BYTE.getId(), NbtByte.class);
-            registry.registerTagType(SHORT.getId(), NbtShort.class);
-            registry.registerTagType(INT.getId(), NbtInt.class);
-            registry.registerTagType(LONG.getId(), NbtLong.class);
-            registry.registerTagType(FLOAT.getId(), NbtFloat.class);
-            registry.registerTagType(DOUBLE.getId(), NbtDouble.class);
-            registry.registerTagType(BYTE_ARRAY.getId(), NbtByteArray.class);
-            registry.registerTagType(STRING.getId(), NbtString.class);
-            registry.registerTagType(LIST.getId(), NbtList.class);
-            registry.registerTagType(COMPOUND.getId(), NbtCompound.class);
-            registry.registerTagType(INT_ARRAY.getId(), NbtIntArray.class);
-            registry.registerTagType(LONG_ARRAY.getId(), NbtLongArray.class);
+            registry.registerTagType(BYTE.getId(), NbtByte.class, () -> new NbtByte(0));
+            registry.registerTagType(SHORT.getId(), NbtShort.class, () -> new NbtShort(0));
+            registry.registerTagType(INT.getId(), NbtInt.class, () -> new NbtInt(0));
+            registry.registerTagType(LONG.getId(), NbtLong.class, () -> new NbtLong(0));
+            registry.registerTagType(FLOAT.getId(), NbtFloat.class, () -> new NbtFloat(0));
+            registry.registerTagType(DOUBLE.getId(), NbtDouble.class, () -> new NbtDouble(0));
+            registry.registerTagType(BYTE_ARRAY.getId(), NbtByteArray.class, () -> new NbtByteArray(new ArrayList<>()));
+            registry.registerTagType(STRING.getId(), NbtString.class, () -> new NbtString(""));
+            registry.registerTagType(LIST.getId(), NbtList.class, NbtList::new);
+            registry.registerTagType(COMPOUND.getId(), NbtCompound.class, NbtCompound::new);
+            registry.registerTagType(INT_ARRAY.getId(), NbtIntArray.class, () -> new NbtIntArray(new ArrayList<>()));
+            registry.registerTagType(LONG_ARRAY.getId(), NbtLongArray.class, () -> new NbtLongArray(new ArrayList<>()));
         } catch (NbtTypeRegistryException e) {
             // Should never happen.
             e.printStackTrace();
